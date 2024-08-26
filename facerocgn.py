@@ -1,6 +1,7 @@
 import cv2
 import face_recognition
 import numpy as np
+import time
 
 # Загрузка известных изображений лиц и их кодировка
 known_face_encodings = []
@@ -19,7 +20,6 @@ known_face_names.append("Ilya")
 
 # Инициализация захвата видео с веб-камеры
 video_capture = cv2.VideoCapture(0)
-
 
 while True:
     # Захват кадра видео
@@ -45,6 +45,16 @@ while True:
     face_locations = face_recognition.face_locations(rgb_frame)
     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
+    # Замер времени обнаружения лиц
+    start_time_detection = time.time()
+    face_locations = face_recognition.face_locations(rgb_frame)
+    detection_time = time.time() - start_time_detection
+
+    # Замер времени кодирования лиц
+    start_time_encoding = time.time()
+    face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
+    encoding_time = time.time() - start_time_encoding
+
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
         name = "Unknown"
@@ -62,6 +72,10 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+    # Отображение замеров времени
+    cv2.putText(frame, f'Detection Time: {detection_time:.3f} sec', (10, 30), font, 0.6, (0, 255, 0), 1)
+    cv2.putText(frame, f'Encoding Time: {encoding_time:.3f} sec', (10, 60), font, 0.6, (0, 255, 0), 1)
 
     cv2.imshow('Video', frame)
 
